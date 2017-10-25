@@ -23,7 +23,7 @@ void * server(void *args){
   int max_sd;
   struct sockaddr_in address;
 
-  char buffer[128];  //data buffer of 1K
+  signed char buffer[128];  //data buffer of 1K
 
   //set of socket descriptors
   fd_set readfds;
