@@ -67,7 +67,7 @@ void * server(void *args){
   //  puts("Waiting for connections ...");
   initalised = 1;
   while(TRUE) {
-
+    printf("LOOP");
     //If something happened on the master socket ,
     //then its an incoming connection
     if (client_socket == 0) {

@@ -1,1 +1,1 @@
-gcc -std=c99 -Wall -pedantic -o ROTAServer  src/*.c
+gcc -std=c99 -Wall -pedantic -lpthread -o ROTAServer src/*.c
