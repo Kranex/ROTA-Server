@@ -108,7 +108,6 @@ void * server(void *args){
           //of the data read
           buffer[valread] = '\0';
           //char msg[128+16];
-          printf("%d", buffer[0]);
           printf("%d", buffer[1]);
           for(int i = 2; i < valread; i++){
             printf(" %d", buffer[i]);
