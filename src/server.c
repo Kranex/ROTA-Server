@@ -67,7 +67,6 @@ void * server(void *args){
   //  puts("Waiting for connections ...");
   initalised = 1;
   while(TRUE) {
-    printf("LOOP");
     //If something happened on the master socket ,
     //then its an incoming connection
     if (client_socket == 0) {
@@ -93,7 +92,7 @@ void * server(void *args){
     }else{
         //Check if it was for closing , and also read the
         //incoming message
-        if ((valread = read(client_socket, buffer, 4)) == 0) {
+        if ((valread = read(client_socket, buffer, 5)) == 0) {
           //Somebody disconnected , get his details and print
           getpeername(client_socket, (struct sockaddr*)&address , \
           (socklen_t*)&addrlen);
@@ -110,7 +109,8 @@ void * server(void *args){
           buffer[valread] = '\0';
           //char msg[128+16];
           printf("%d", buffer[0]);
-          for(int i = 1; i < valread; i++){
+          printf("%d", buffer[1]);
+          for(int i = 2; i < valread; i++){
             printf(" %d", buffer[i]);
           }
           printf("\n");
