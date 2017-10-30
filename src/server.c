@@ -111,7 +111,7 @@ void * server(void *args){
           signed char dat[5] = {0};
           for(int i = 0; i < valread; i++){
             printf("%d ", buffer[i]);
-            dat[i] = buffer[i];
+            dat[i] = buffer[i]+127;
           }
           serialport_write(dat, 5);
           //snprintf(msg, 128+16, "<%s> %s", names[i], buffer);
