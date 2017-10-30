@@ -17,7 +17,8 @@ joysticks   |
 #include "serial.h"
 
 int main(void){
-  serialport_init("/dev/tty1");
+  serialport_init("/dev/ttyACM0");
+
   initServer();
   while(1);
   serial_close();
