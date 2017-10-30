@@ -14,8 +14,11 @@ joysticks   |
 */
 
 #include "server.h"
+#include "serial.h"
 
 int main(void){
+  serialport_init("/dev/tty1");
   initServer();
   while(1);
+  serial_close();
 }

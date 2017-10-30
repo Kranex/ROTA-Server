@@ -45,75 +45,15 @@ Updated 26 December 2007:
 #include <sys/ioctl.h>
 #include <getopt.h>
 
-void usage(void);
+#include "serial.h"
+int fd = 0;
 
-int serialport_init(const char* serialport, int baud);
-
-int serialport_writebyte(int fd, uint8_t b);
-
-int serialport_write(int fd, const char* str);
-
-int serialport_read_until(int fd, char* buf, char until);
-
-void usage(void) {
-  printf("Usage: arduino-serial -p <serialport> [OPTIONS]\n"
-  "\n"
-  "Options:\n"
-  "  -h, --help                   Print this help message\n"
-  "  -p, --port=serialport        Serial port Arduino is on\n"
-  "  -b, --baud=baudrate          Baudrate (bps) of Arduino\n"
-  "  -s, --send=data              Send data to Arduino\n"
-  "  -r, --receive                Receive data from Arduino & print it out\n"
-  "  -n  --num=num                Send a number as a single byte\n"
-  "  -d  --delay=millis           Delay for specified milliseconds\n"
-  "\n"
-  "Note: Order is important. Set '-b' before doing '-p'. \n"
-  "      Used to make series of actions:  '-d 2000 -s hello -d 100 -r' \n"
-  "      means 'wait 2secs, send 'hello', wait 100msec, get reply'\n"
-  "\n");
+void serial_close(){
+  close(fd);
 }
 
-int main(int argc, char *argv[]) {
-  int fd = 0;
-  char serialport[256];
-  int baudrate = B115200;  // default
-  char buf[20], dat[20], use[1];
-  int rc,n;
-  //baudrate = 9600;
-  fd = serialport_init("/dev/ttyACM0", baudrate);   
+int serialport_write(const signed char* str, int len) {
   if(fd==-1) return -1;
-  usleep(3000 * 1000 );
-  while(1) {
-    strcpy(dat, "00000000:\0");
-    gets(use);
-    if(use[0] == 'i') {
-      dat[0] = 'f';
-      dat[1] = 5;
-    }
-    else if(use[0] == 'k') {
-      dat[0] = 'b';
-      dat[1] = 5;
-    }
-    else if(use[0] == 'j') {
-      dat[2] = 'f';
-      dat[3] = 5;
-    }
-    else if(use[0] == 'l') {
-      dat[2] = 'b';
-      dat[3] = 5;
-    }
-    rc = serialport_write(fd, dat);
-    if(rc==-1) return -1;
-    //printf("Waiting until UART buffer clears: %d\n", tcdrain(fd))
-    n = serialport_read_until(fd, buf, ':');
-    printf("wrote %d bytes, read %d bytes: %s\n", rc, n, buf);
-  }
-  close(fd);
-  exit(EXIT_SUCCESS);
-} // end main
-
-int serialport_write(int fd, const signed char* str) {
-  int len = strlen(str);
   int n = write(fd, str, len);
   return ( n!=len)  ?  (-1) : (n);
 }
@@ -123,9 +63,8 @@ int serialport_write(int fd, const signed char* str) {
 // opens the port in fully raw mode so you can send binary data.
 // returns valid fd, or -1 on error
 
-int serialport_init(const char* serialport) {
+void serialport_init(const char* serialport) {
   struct termios toptions;
-  int fd;
   //fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
   //        serialport,baud);
   //fd = open(serialport, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -167,8 +106,7 @@ int serialport_init(const char* serialport) {
 
 
   if( tcsetattr(fd, TCSANOW, &toptions) < 0) {
-    perror("init_serialport: Couldn't set term attributes");
-    return -1;
+    perror("init_serialport: Couldn't set term attributes");\
+    fd = -1;
   }
-  return fd;
 }

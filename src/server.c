@@ -10,6 +10,8 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <pthread.h>
 
+#include "serial.h"
+
 #define TRUE   1
 #define FALSE  0
 
@@ -108,11 +110,14 @@ void * server(void *args){
           //of the data read
           buffer[valread] = '\0';
           //char msg[128+16];
-          printf("%d", buffer[1]);
-          for(int i = 2; i < valread; i++){
-            printf(" %d", buffer[i]);
-          }
           printf("\n");
+          signed char dat[7];
+          strcpy(dat, "00000:\0", 7);
+          for(int i = 0; i < valread; i++){
+            printf("%d ", buffer[i]);
+            dat[i] = buffer[i];
+          }
+          serialport_write(dat, 7);
           //snprintf(msg, 128+16, "<%s> %s", names[i], buffer);
           //send(client_socket, msg , strlen(msg) , 0 );
         }
