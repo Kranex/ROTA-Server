@@ -63,7 +63,7 @@ int serialport_write(const signed char* str, int len) {
 // opens the port in fully raw mode so you can send binary data.
 // returns valid fd, or -1 on error
 
-void serialport_init(const char* serialport) {
+int serialport_init(const char* serialport) {
   struct termios toptions;
   //fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
   //        serialport,baud);
@@ -109,4 +109,5 @@ void serialport_init(const char* serialport) {
     perror("init_serialport: Couldn't set term attributes");\
     fd = -1;
   }
+  return 1;
 }
