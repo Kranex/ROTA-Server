@@ -21,14 +21,11 @@ pthread_t serverThread;
 
 void * server(void *args){
   int opt = TRUE;
-  int master_socket, addrlen, new_socket, client_socket, activity, valread, sd;
-  int max_sd;
+  int master_socket, addrlen, new_socket, client_socket, valread;
   struct sockaddr_in address;
 
   signed char buffer[128];  //data buffer of 1K
-
-  //set of socket descriptors
-  fd_set readfds;
+  
   //initialise all client_socket[] to 0 so not checked
   client_socket = 0;
 
@@ -111,12 +108,13 @@ void * server(void *args){
           buffer[valread] = '\0';
           //char msg[128+16];
           printf("\n");
-          signed char dat[7];
-          strcpy(dat, "00000:\0", 7);
+          signed char dat[7] = {0};
           for(int i = 0; i < valread; i++){
             printf("%d ", buffer[i]);
             dat[i] = buffer[i];
           }
+          dat[5] = ':';
+          dat[6] = '\0';
           serialport_write(dat, 7);
           //snprintf(msg, 128+16, "<%s> %s", names[i], buffer);
           //send(client_socket, msg , strlen(msg) , 0 );
