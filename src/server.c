@@ -25,7 +25,7 @@ void * server(void *args){
   struct sockaddr_in address;
 
   signed char buffer[128];  //data buffer of 1K
-  
+
   //initialise all client_socket[] to 0 so not checked
   client_socket = 0;
 
@@ -108,14 +108,12 @@ void * server(void *args){
           buffer[valread] = '\0';
           //char msg[128+16];
           printf("\n");
-          signed char dat[7] = {0};
+          signed char dat[5] = {0};
           for(int i = 0; i < valread; i++){
             printf("%d ", buffer[i]);
             dat[i] = buffer[i];
           }
-          dat[5] = ':';
-          dat[6] = '\0';
-          serialport_write(dat, 7);
+          serialport_write(dat, 5);
           //snprintf(msg, 128+16, "<%s> %s", names[i], buffer);
           //send(client_socket, msg , strlen(msg) , 0 );
         }
