@@ -81,8 +81,8 @@ int serialport_init(const char* serialport) {
     return -1;
   }
 
-  cfsetispeed(&toptions, B9600);
-  cfsetospeed(&toptions, B9600);
+  cfsetispeed(&toptions, B115200);
+  cfsetospeed(&toptions, B115200);
 
   // 8N1
 
