@@ -14,8 +14,7 @@
 
 #define TRUE   1
 #define FALSE  0
-
-char port[6] = "55455";
+#define PORT 55455;
 int initalised;
 pthread_t serverThread;
 
@@ -24,100 +23,93 @@ void * server(void *args){
   int master_socket, addrlen, new_socket, client_socket, valread;
   struct sockaddr_in address;
 
-  signed char buffer[128];  //data buffer of 1K
+  signed char buffer[128];  //data buffer of 128 signed bytes
 
-  //initialise all client_socket[] to 0 so not checked
+  //initialise client socket to 0.
   client_socket = 0;
 
   //create a master socket
   if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) {
-    //  perror("socket failed");
+    perror("master_socket: master socket failed");
     exit(EXIT_FAILURE);
   }
 
   //set master socket to allow multiple connections ,
   //this is just a good habit, it will work without this
+  // also totally redundant as we only want one controller, however
+  // it doesn't really matter.
   if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
   sizeof(opt)) < 0 ) {
-    //perror("setsockopt");
+    perror("setsockopt: failed to allow multiple connections");
     exit(EXIT_FAILURE);
   }
 
-  //type of socket created
+  //type of socket created. More overly complicated c socket stuff.
+  // seriously java is 200x better at this.
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(atoi(port));
+  address.sin_port = htons(PORT);
 
-  //bind the socket to localhost port 8888
+  //bind the socket to localhost:PORT
   if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {
-    //perror("bind failed");
-    exit(EXIT_FAILURE);
-  }
-  //  printf("Listener on port %d \n", PORT);
-
-  //try to specify maximum of 3 pending connections for the master socket
-  if (listen(master_socket, 3) < 0) {
-    //perror("listen");
+    perror("bind: failed");
     exit(EXIT_FAILURE);
   }
 
-  //accept the incoming connection
   addrlen = sizeof(address);
-  //  puts("Waiting for connections ...");
+  // initalised flag to unblock initServer.
   initalised = 1;
+
+  // no real stop flag. catching terminate signals is a pain.
+  // Currently doesn't block the port so whatever.
   while(TRUE) {
-    //If something happened on the master socket ,
-    //then its an incoming connection
+    // If something happened on the master socket,
+    // then its an incoming connection.
+    // i have no idea what will happen if a second connection is
+    // made and I'd rather not find out.
     if (client_socket == 0) {
       if ((new_socket = accept(master_socket,(struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
-          //perror("accept");
+          perror("accept: new_socket accept failed.");
           exit(EXIT_FAILURE);
       }
 
-        //inform user of socket number - used in send and receive commands
+        //print the connection information. useful for checking connections.
         printf("New connection , socket fd is %d , ip is : %s , port : %d\n",
         new_socket , inet_ntoa(address.sin_addr) , ntohs
         (address.sin_port));
 
-        //send new connection greeting message
-        //if( send(new_socket, message, strlen(message), 0) != strlen(message)) {
-        //  //perror("send");
-        //  }
-
-        //  puts("Welcome message sent successfully");
         client_socket = new_socket;
-          //snprintf(names[i], 16, "%s%d", "User", users);
-          //printf("Adding to list of sockets as %d\n" , i);
     }else{
         //Check if it was for closing , and also read the
         //incoming message
         if ((valread = read(client_socket, buffer, 5)) == 0) {
-          //Somebody disconnected , get his details and print
+          //client has disconnected , get his details and print
           getpeername(client_socket, (struct sockaddr*)&address , \
           (socklen_t*)&addrlen);
             printf("User disconnected , ip %s , port %d \n" ,
             inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-          //Close the socket and mark as 0 in list for reuse
+          //Close the socket and mark as 0 for reuse
           close(client_socket);
           client_socket = 0;
         } else {
-          //Echo back the message that came in
-          //set the string terminating NULL byte on the end
-          //of the data read
-          buffer[valread] = '\0';
-          //char msg[128+16];
+
+          //we're expecting 5 bytes,{undefined, x1, y1, x2 and y2}
           signed char dat[5] = {0};
+
+          // loop through buffer, add 127 to it as serial doesn't like
+          // signed bytes >.<
           for(int i = 0; i < valread; i++){
             dat[i] = buffer[i]+127;
           }
-          serialport_write(dat, 5);
-          //snprintf(msg, 128+16, "<%s> %s", names[i], buffer);
-          //send(client_socket, msg , strlen(msg) , 0 );
+
+          // write to arduino.
+          serialportWrite(dat, 5);
         }
       }
     }
   }
+  /* initialise server thread */
   void initServer(){
     pthread_create(&serverThread, NULL, server, NULL);
     while(!initalised);
